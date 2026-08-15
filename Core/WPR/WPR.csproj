@@ -11,6 +11,7 @@
 	<EFVersion Condition="'$(TargetFramework)' != 'net5.0-windows10.0.17763.0'">6.0.8</EFVersion>
 	<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-android'">21</SupportedOSPlatformVersion>
 	<Nullable>enable</Nullable>
+	<TargetFrameworks>net8.0-windows10.0.17763.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FFMpegCore" Version="4.8.0" />
