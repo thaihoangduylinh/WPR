@@ -12,6 +12,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Core\WPR.Common\WPR.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.Phone\Microsoft.Phone.csproj" />
   </ItemGroup>
 
 </Project>

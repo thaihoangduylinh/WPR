@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WPR.WindowsCompability
 {
-    internal class Deployment
+    public class Deployment
     {
         // Singleton pattern để giả lập Deployment.Current của Silverlight
         private static readonly Deployment _current = new Deployment();

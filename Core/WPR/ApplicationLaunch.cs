@@ -48,6 +48,7 @@ namespace WPR
 
             // Instatiate
             Type? mainType = assem.GetType(app.EntryPoint);
+            WPR.WindowsCompability.Deployment.Current.EntryPointAssembly = app.Assembly.Replace(".dll","");
 
             // Run on separate thread to not affect the UI
             await Task.Run(() =>

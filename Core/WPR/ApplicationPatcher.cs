@@ -20,6 +20,7 @@ namespace WPR
         private AssemblyNameReference FNARef;
         private AssemblyNameReference SystemRunTimeRef;
         private AssemblyNameReference WindowsCompRef;
+        private AssemblyNameReference MicroSoftPhoneRef;
         private AssemblyNameReference StandardCompRef;
         private AssemblyNameReference ServiceModelPrimitivesRef;
         private AssemblyNameReference ServiceModelHTTPRef;
@@ -40,6 +41,7 @@ namespace WPR
             FNACompRef = AssemblyNameReference.Parse("WPR.XnaCompability");
             SystemRunTimeRef = AssemblyNameReference.Parse("System.Runtime");
             WindowsCompRef = AssemblyNameReference.Parse("WPR.WindowsCompability");
+            MicroSoftPhoneRef = AssemblyNameReference.Parse("Microsoft.Phone");
             ServiceModelPrimitivesRef = AssemblyNameReference.Parse("System.ServiceModel.Primitives");
             ServiceModelHTTPRef = AssemblyNameReference.Parse("System.ServiceModel.Http");
             StandardCompRef = AssemblyNameReference.Parse("WPR.StandardCompability");
@@ -55,6 +57,12 @@ namespace WPR
                     {
                         Reference = WindowsCompRef,
                         NewNamespace = "WPR.WindowsCompability"
+                    }
+                },
+                { "System.Windows.UIElement", new TypePatchInfo()
+                    {
+                        Reference = MicroSoftPhoneRef,
+                        NewNamespace = "Microsoft.Phone.Controls"
                     }
                 },
                 { "Microsoft.Xna.Framework.GraphicsDeviceManager", new TypePatchInfo()
@@ -420,6 +428,12 @@ namespace WPR
                     refer.Version = ServiceModelPrimitivesRef.Version;
                     refer.PublicKey = ServiceModelPrimitivesRef.PublicKey;
                 }
+                else if (refer.Name.Equals("Microsoft.Phone", StringComparison.OrdinalIgnoreCase))
+                {
+                    refer.Name = MicroSoftPhoneRef.Name;
+                    refer.Version = MicroSoftPhoneRef.Version;
+                    refer.PublicKey = MicroSoftPhoneRef.PublicKey;
+                }
             }
 
             PatchRelaxedXmlNullableAttribTextSerialize(module);
@@ -430,6 +444,7 @@ namespace WPR
             module.AssemblyReferences.Add(ServiceModelPrimitivesRef);
             module.AssemblyReferences.Add(ServiceModelHTTPRef);
             module.AssemblyReferences.Add(StandardCompRef);
+            module.AssemblyReferences.Add(MicroSoftPhoneRef);
 
             Dictionary<string, TypeReference> typeRefPatchCache = new Dictionary<string, TypeReference>();
 
