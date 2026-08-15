@@ -51,6 +51,12 @@ namespace WPR
                     Reference = SystemRunTimeRef
                 }
                 },
+                { "System.Windows.Deployment", new TypePatchInfo()
+                    {
+                        Reference = WindowsCompRef,
+                        NewNamespace = "WPR.WindowsCompability"
+                    }
+                },
                 { "Microsoft.Xna.Framework.GraphicsDeviceManager", new TypePatchInfo()
                 {
                     NewName = "GraphicsDeviceManager2",
@@ -401,7 +407,8 @@ namespace WPR
                         refer.Version = FNARef.Version;
                         refer.PublicKey = FNARef.PublicKey;
                     }
-                } else if (refer.Name.Equals("mscorlib.Extensions", StringComparison.OrdinalIgnoreCase))
+                }
+                else if (refer.Name.Equals("mscorlib.Extensions", StringComparison.OrdinalIgnoreCase))
                 {
                     refer.Name = SystemRunTimeRef.Name;
                     refer.Version = SystemRunTimeRef.Version;
@@ -439,7 +446,8 @@ namespace WPR
                         if (typeRefPatchCache.ContainsKey(patch.Value.FullName!))
                         {
                             memberRef.DeclaringType = typeRefPatchCache[patch.Value.FullName!];
-                        } else
+                        }
+                        else
                         {
                             memberRef.DeclaringType = module.ImportReference(patch.Value);
                             typeRefPatchCache.Add(patch.Value.FullName!, memberRef.DeclaringType);
@@ -505,7 +513,8 @@ namespace WPR
                 try
                 {
                     PatchDll(filename);
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Common.Log.Error(Common.LogCategory.AppPatcher, $"Fail to patch DLL with path: {filename}. Error:\n{ex}");
                     continue;
