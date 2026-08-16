@@ -12,6 +12,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using WPR.XnaCompability;
+using System.Linq;
+using System.Resources;
+using System.DirectoryServices.Protocols;
 
 namespace WPR
 {
@@ -53,6 +56,38 @@ namespace WPR
             // Run on separate thread to not affect the UI
             await Task.Run(() =>
             {
+                /*{
+                    string fileName = Path.Combine(folderPath, AssemblyNameStandardization.Process("YF.Framework.Audio.dll") + ".original");
+                    System.Reflection.Assembly asm = System.Reflection.Assembly.LoadFile(fileName);
+
+                    Type rayType = null;
+                    string className = "\u0005";
+                    string fieldName = "\u0005";
+                    try
+                    {
+                        // Cứ gọi GetTypes() bình thường
+                        rayType = asm.GetTypes().FirstOrDefault(t => t.Name == className);
+                    }
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        rayType = ex.Types.FirstOrDefault(t => t != null && t.Name == className);
+
+                        Console.WriteLine("[!] Đã bỏ qua lỗi thiếu DLL bằng ReflectionTypeLoadException!");
+                    }
+
+                    if (rayType != null)
+                    {
+                        object instance = Activator.CreateInstance(rayType);
+
+                        FieldInfo field5 = rayType.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+                        if (field5 != null)
+                        {
+                            field5.GetValue(instance);
+                        }
+                    }
+                }*/
+
                 using (Game? obj = Activator.CreateInstance(mainType!) as Game)
                 {
                     obj!.IsMouseVisible = true;

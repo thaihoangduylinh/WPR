@@ -8,7 +8,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace WPR
 {
@@ -68,6 +67,13 @@ namespace WPR
                 { "Microsoft.Xna.Framework.GraphicsDeviceManager", new TypePatchInfo()
                 {
                     NewName = "GraphicsDeviceManager2",
+                    NewNamespace = "WPR.XnaCompability",
+                    Reference = FNACompRef
+                }
+                },
+                { "Microsoft.Xna.Framework.Graphics.Effect", new TypePatchInfo()
+                {
+                    NewName = "Effect2",
                     NewNamespace = "WPR.XnaCompability",
                     Reference = FNACompRef
                 }
@@ -378,9 +384,89 @@ namespace WPR
             }
         }
 
+        IEnumerable<TypeDefinition> GetAllTypes(ModuleDefinition module)
+        {
+            var types = new Stack<TypeDefinition>(module.Types);
+            while (types.Count > 0)
+            {
+                var type = types.Pop();
+                yield return type;
+
+                // Lấy luôn cả các Class lồng bên trong (Nested Types)
+                foreach (var nested in type.NestedTypes)
+                {
+                    types.Push(nested);
+                }
+            }
+        }
+
+        void PatchAllPublicKeyTokens(ref AssemblyDefinition assembly, byte[] realToken)
+        {
+            try
+            {
+                var module = assembly.MainModule;
+
+                // Import kiểu dữ liệu 'byte' để dùng cho lệnh khởi tạo mảng (newarr)
+                TypeReference byteType = module.ImportReference(typeof(byte));
+
+                // Duyệt qua tất cả các class (Bao gồm cả Nested Class và <Module>)
+                foreach (var type in GetAllTypes(module))
+                {
+                    // Lọc các hàm có chứa thân hàm (có chứa lệnh IL)
+                    foreach (var method in type.Methods.Where(m => m.HasBody))
+                    {
+                        var il = method.Body.GetILProcessor();
+
+                        // Tạo một bản copy của danh sách lệnh để duyệt (tránh lỗi khi đang lặp mà lại thêm/xóa lệnh)
+                        var instructions = method.Body.Instructions.ToList();
+
+                        foreach (var inst in instructions)
+                        {
+                            // Tìm lệnh gọi hàm (Call hoặc Callvirt)
+                            if ((inst.OpCode == OpCodes.Callvirt || inst.OpCode == OpCodes.Call) &&
+                                inst.Operand is MethodReference methodRef)
+                            {
+                                // Nếu tên hàm đúng là GetPublicKeyToken và trả về mảng byte
+                                if (methodRef.Name == "GetPublicKeyToken" &&
+                                    methodRef.ReturnType.FullName == "System.Byte[]")
+                                {
+                                    // 1. Vứt bỏ đối tượng cũ trên stack (AssemblyName)
+                                    il.InsertBefore(inst, Instruction.Create(OpCodes.Pop));
+
+                                    // 2. Khởi tạo mảng với độ dài thực tế của token
+                                    il.InsertBefore(inst, Instruction.Create(OpCodes.Ldc_I4, realToken.Length));
+                                    il.InsertBefore(inst, Instruction.Create(OpCodes.Newarr, byteType));
+
+                                    // 3. Đổ từng byte dữ liệu vào mảng TRƯỚC KHI gán vào biến
+                                    for (int j = 0; j < realToken.Length; j++)
+                                    {
+                                        il.InsertBefore(inst, Instruction.Create(OpCodes.Dup));                     // Nhân bản mảng trên stack
+                                        il.InsertBefore(inst, Instruction.Create(OpCodes.Ldc_I4, j));                // Index
+                                        il.InsertBefore(inst, Instruction.Create(OpCodes.Ldc_I4, (int)realToken[j])); // Giá trị byte
+                                        il.InsertBefore(inst, Instruction.Create(OpCodes.Stelem_I1));                // Lưu vào mảng
+                                    }
+
+                                    il.Remove(inst);
+                                    break; // Thoát vòng lặp của hàm hiện tại để chuyển sang hàm tiếp theo
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("\n[X] LỖI: " + ex.Message);
+            }
+        }
+
         public void PatchDll(string modulePath)
         {
+            //System.Reflection.AssemblyName assemblyName = System.Reflection.AssemblyName.GetAssemblyName(modulePath);
+            //byte[] token = assemblyName.GetPublicKeyToken();
+
             AssemblyDefinition assemblyData = AssemblyDefinition.ReadAssembly(modulePath);
+            //PatchAllPublicKeyTokens(ref assemblyData, token);
             var module = assemblyData.MainModule;
 
             assemblyData.Name.Name = AssemblyNameStandardization.Process(assemblyData.Name.Name);
