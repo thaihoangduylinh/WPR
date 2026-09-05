@@ -78,6 +78,13 @@ namespace WPR
                     Reference = FNACompRef
                 }
                 },
+                { "Microsoft.Xna.Framework.Graphics.SpriteBatch", new TypePatchInfo()
+                {
+                    NewName = "SpriteBatch2",
+                    NewNamespace = "WPR.XnaCompability",
+                    Reference = FNACompRef
+                }
+                },
                 { "System.Windows.Application", new TypePatchInfo()
                 {
                     Reference = WindowsCompRef,
